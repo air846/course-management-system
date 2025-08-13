@@ -166,7 +166,7 @@ public interface GradeMapper extends BaseMapper<Grade> {
 
     /**
      * 查询学生的学期排名
-     * 
+     *
      * @param studentId 学生ID
      * @param semester 学期
      * @return 排名信息
@@ -188,4 +188,12 @@ public interface GradeMapper extends BaseMapper<Grade> {
             "WHERE student_id = #{studentId}")
     Map<String, Object> getStudentRanking(@Param("studentId") Long studentId,
                                          @Param("semester") String semester);
+
+    /**
+     * 批量插入成绩
+     *
+     * @param grades 成绩列表
+     * @return 插入数量
+     */
+    int batchInsert(@Param("grades") List<Grade> grades);
 }

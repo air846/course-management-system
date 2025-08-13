@@ -53,6 +53,88 @@ const routes = [
         }
       },
       {
+        path: '/course-selection',
+        name: 'CourseSelection',
+        component: () => import('@/views/course/CourseSelection.vue'),
+        meta: {
+          title: '选课管理',
+          icon: 'DocumentAdd',
+          roles: ['STUDENT']
+        }
+      },
+      {
+        path: '/course-students/:courseId',
+        name: 'CourseStudents',
+        component: () => import('@/views/course/CourseStudents.vue'),
+        meta: {
+          title: '选课学生',
+          icon: 'User',
+          roles: ['ADMIN', 'TEACHER'],
+          hidden: true // 隐藏在菜单中，通过其他页面跳转访问
+        }
+      },
+      {
+        path: '/my-grades',
+        name: 'MyGrades',
+        component: () => import('@/views/grade/MyGrades.vue'),
+        meta: {
+          title: '我的成绩',
+          icon: 'TrendCharts',
+          roles: ['STUDENT']
+        }
+      },
+      {
+        path: '/grade-management/:courseId',
+        name: 'GradeManagement',
+        component: () => import('@/views/grade/GradeManagement.vue'),
+        meta: {
+          title: '成绩管理',
+          icon: 'EditPen',
+          roles: ['ADMIN', 'TEACHER'],
+          hidden: true // 隐藏在菜单中，通过其他页面跳转访问
+        }
+      },
+      {
+        path: '/announcements',
+        name: 'AnnouncementList',
+        component: () => import('@/views/announcement/AnnouncementList.vue'),
+        meta: {
+          title: '通知公告',
+          icon: 'Bell',
+          roles: ['ADMIN', 'TEACHER', 'STUDENT']
+        }
+      },
+      {
+        path: '/announcement-management',
+        name: 'AnnouncementManagement',
+        component: () => import('@/views/announcement/AnnouncementManagement.vue'),
+        meta: {
+          title: '公告管理',
+          icon: 'EditPen',
+          roles: ['ADMIN', 'TEACHER']
+        }
+      },
+      {
+        path: '/statistics-dashboard',
+        name: 'StatisticsDashboard',
+        component: () => import('@/views/statistics/StatisticsDashboard.vue'),
+        meta: {
+          title: '数据统计',
+          icon: 'DataAnalysis',
+          roles: ['ADMIN', 'TEACHER']
+        }
+      },
+      {
+        path: '/statistics-reports',
+        name: 'StatisticsReports',
+        component: () => import('@/views/statistics/StatisticsReports.vue'),
+        meta: {
+          title: '统计报表',
+          icon: 'Document',
+          roles: ['ADMIN', 'TEACHER']
+        }
+      },
+      {
         path: '/profile',
         name: 'Profile',
         component: () => import('@/views/Profile.vue'),

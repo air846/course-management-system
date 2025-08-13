@@ -147,3 +147,34 @@ CREATE TABLE grades (
     FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='成绩表';
+
+-- 9. 公告表
+CREATE TABLE announcements (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '公告ID',
+    title VARCHAR(200) NOT NULL COMMENT '公告标题',
+    content TEXT NOT NULL COMMENT '公告内容',
+    type TINYINT NOT NULL COMMENT '公告类型：1-系统公告，2-课程公告，3-考试公告，4-活动公告',
+    priority TINYINT DEFAULT 2 COMMENT '优先级：1-低，2-中，3-高，4-紧急',
+    publisher_id BIGINT NOT NULL COMMENT '发布者ID',
+    target_type TINYINT DEFAULT 1 COMMENT '目标用户类型：1-全部用户，2-学生，3-教师，4-管理员',
+    course_id BIGINT COMMENT '关联课程ID（课程公告时使用）',
+    is_top TINYINT DEFAULT 0 COMMENT '是否置顶：0-否，1-是',
+    status TINYINT DEFAULT 0 COMMENT '状态：0-草稿，1-已发布，2-已撤回',
+    publish_time DATETIME COMMENT '发布时间',
+    expire_time DATETIME COMMENT '过期时间',
+    read_count INT DEFAULT 0 COMMENT '阅读次数',
+    attachment_url VARCHAR(500) COMMENT '附件URL',
+    attachment_name VARCHAR(100) COMMENT '附件名称',
+    deleted TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_publisher_id (publisher_id),
+    INDEX idx_type (type),
+    INDEX idx_status (status),
+    INDEX idx_target_type (target_type),
+    INDEX idx_course_id (course_id),
+    INDEX idx_publish_time (publish_time),
+    INDEX idx_is_top (is_top),
+    FOREIGN KEY (publisher_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='公告表';

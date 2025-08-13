@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.mapper.AnnouncementMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="AnnouncementWithDetailsMap" type="com.course.entity.Announcement">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="type" property="type"/>
+        <result column="priority" property="priority"/>
+        <result column="publisher_id" property="publisherId"/>
+        <result column="target_type" property="targetType"/>
+        <result column="course_id" property="courseId"/>
+        <result column="is_top" property="isTop"/>
+        <result column="status" property="status"/>
+        <result column="publish_time" property="publishTime"/>
+        <result column="expire_time" property="expireTime"/>
+        <result column="read_count" property="readCount"/>
+        <result column="attachment_url" property="attachmentUrl"/>
+        <result column="attachment_name" property="attachmentName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+        
+        <!-- 关联信息 -->
+        <result column="publisher_name" property="publisherName"/>
+        <result column="course_name" property="courseName"/>
+        <result column="type_text" property="typeText"/>
+        <result column="priority_text" property="priorityText"/>
+        <result column="target_type_text" property="targetTypeText"/>
+        <result column="status_text" property="statusText"/>
+        <result column="is_expired" property="isExpired"/>
+    </resultMap>
+
+    <!-- 分页查询公告列表（包含发布者和课程信息） -->
+    <select id="selectAnnouncementPageWithDetails" resultMap="AnnouncementWithDetailsMap">
+        SELECT 
+            a.id,
+            a.title,
+            a.content,
+            a.type,
+            a.priority,
+            a.publisher_id,
+            a.target_type,
+            a.course_id,
+            a.is_top,
+            a.status,
+            a.publish_time,
+            a.expire_time,
+            a.read_count,
+            a.attachment_url,
+            a.attachment_name,
+            a.create_time,
+            a.update_time,
+            a.deleted,
+            
+            <!-- 发布者信息 -->
+            u.real_name as publisher_name,
+            
+            <!-- 课程信息 -->
+            c.course_name,
+            
+            <!-- 类型描述 -->
+            CASE 
+              WHEN a.type = 1 THEN '系统公告'
+              WHEN a.type = 2 THEN '课程公告'
+              WHEN a.type = 3 THEN '考试公告'
+              WHEN a.type = 4 THEN '活动公告'
+              ELSE '未知'
+            END as type_text,
+            
+            <!-- 优先级描述 -->
+            CASE 
+              WHEN a.priority = 1 THEN '低'
+              WHEN a.priority = 2 THEN '中'
+              WHEN a.priority = 3 THEN '高'
+              WHEN a.priority = 4 THEN '紧急'
+              ELSE '普通'
+            END as priority_text,
+            
+            <!-- 目标用户类型描述 -->
+            CASE 
+              WHEN a.target_type = 1 THEN '全部用户'
+              WHEN a.target_type = 2 THEN '学生'
+              WHEN a.target_type = 3 THEN '教师'
+              WHEN a.target_type = 4 THEN '管理员'
+              ELSE '未知'
+            END as target_type_text,
+            
+            <!-- 状态描述 -->
+            CASE 
+              WHEN a.status = 0 THEN '草稿'
+              WHEN a.status = 1 THEN '已发布'
+              WHEN a.status = 2 THEN '已撤回'
+              ELSE '未知'
+            END as status_text,
+            
+            <!-- 是否过期 -->
+            CASE 
+              WHEN a.expire_time IS NOT NULL AND a.expire_time &lt; NOW() THEN 1
+              ELSE 0
+            END as is_expired
+            
+        FROM announcements a
+        LEFT JOIN users u ON a.publisher_id = u.id
+        LEFT JOIN courses c ON a.course_id = c.id
+        
+        <where>
+            a.deleted = 0
+            
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    a.title LIKE CONCAT('%', #{keyword}, '%')
+                    OR a.content LIKE CONCAT('%', #{keyword}, '%')
+                    OR u.real_name LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            
+            <if test="type != null">
+                AND a.type = #{type}
+            </if>
+            
+            <if test="status != null">
+                AND a.status = #{status}
+            </if>
+            
+            <if test="targetType != null">
+                AND a.target_type = #{targetType}
+            </if>
+            
+            <if test="courseId != null">
+                AND a.course_id = #{courseId}
+            </if>
+            
+            <if test="publisherId != null">
+                AND a.publisher_id = #{publisherId}
+            </if>
+        </where>
+        
+        ORDER BY a.is_top DESC, a.priority DESC, a.publish_time DESC
+    </select>
+
+    <!-- 统计公告数量 -->
+    <select id="getAnnouncementStatistics" resultType="map">
+        SELECT 
+            COUNT(*) as total_count,
+            COUNT(CASE WHEN status = 1 THEN 1 END) as published_count,
+            COUNT(CASE WHEN status = 0 THEN 1 END) as draft_count,
+            COUNT(CASE WHEN status = 2 THEN 1 END) as withdrawn_count,
+            COUNT(CASE WHEN is_top = 1 THEN 1 END) as top_count,
+            COUNT(CASE WHEN expire_time IS NOT NULL AND expire_time &lt; NOW() THEN 1 END) as expired_count
+        FROM announcements
+        <where>
+            deleted = 0
+            
+            <if test="type != null">
+                AND type = #{type}
+            </if>
+            
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            
+            <if test="publisherId != null">
+                AND publisher_id = #{publisherId}
+            </if>
+        </where>
+    </select>
+
+</mapper>

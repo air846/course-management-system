@@ -143,12 +143,17 @@ const menuRoutes = computed(() => {
     if (!route.meta || !route.meta.title) {
       return false
     }
-    
+
+    // 过滤掉隐藏的路由
+    if (route.meta.hidden) {
+      return false
+    }
+
     // 检查权限
     if (route.meta.roles && route.meta.roles.length > 0) {
       return route.meta.roles.some(role => authStore.hasRole(role))
     }
-    
+
     return true
   })
 })

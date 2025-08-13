@@ -121,8 +121,40 @@ public interface CourseSelectionMapper extends BaseMapper<CourseSelection> {
                                   @Param("status") Integer status);
 
     /**
+     * 统计学生选课数量
+     *
+     * @param studentId 学生ID
+     * @param semester 学期
+     * @param status 选课状态
+     * @return 选课数量
+     */
+    @Select("SELECT COUNT(*) FROM course_selections cs " +
+            "INNER JOIN courses c ON cs.course_id = c.id " +
+            "WHERE cs.student_id = #{studentId} " +
+            "AND (#{semester} IS NULL OR c.semester = #{semester}) " +
+            "AND (#{status} IS NULL OR cs.status = #{status}) " +
+            "AND cs.deleted = 0")
+    Integer countByStudentId(@Param("studentId") Long studentId,
+                            @Param("semester") String semester,
+                            @Param("status") Integer status);
+
+    /**
+     * 统计课程选课数量
+     *
+     * @param courseId 课程ID
+     * @param status 选课状态
+     * @return 选课数量
+     */
+    @Select("SELECT COUNT(*) FROM course_selections " +
+            "WHERE course_id = #{courseId} " +
+            "AND (#{status} IS NULL OR status = #{status}) " +
+            "AND deleted = 0")
+    Integer countByCourseId(@Param("courseId") Long courseId,
+                           @Param("status") Integer status);
+
+    /**
      * 查询学生在指定时间段是否有课程冲突
-     * 
+     *
      * @param studentId 学生ID
      * @param dayOfWeek 星期几
      * @param startTime 开始时间

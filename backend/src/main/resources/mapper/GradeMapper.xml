@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.mapper.GradeMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="GradeWithDetailsMap" type="com.course.entity.Grade">
+        <id column="id" property="id"/>
+        <result column="student_id" property="studentId"/>
+        <result column="course_id" property="courseId"/>
+        <result column="usual_score" property="usualScore"/>
+        <result column="midterm_score" property="midtermScore"/>
+        <result column="final_score" property="finalScore"/>
+        <result column="total_score" property="totalScore"/>
+        <result column="grade_level" property="gradeLevel"/>
+        <result column="semester" property="semester"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        
+        <!-- 学生信息 -->
+        <result column="student_name" property="studentName"/>
+        <result column="student_number" property="studentNumber"/>
+        
+        <!-- 课程信息 -->
+        <result column="course_code" property="courseCode"/>
+        <result column="course_name" property="courseName"/>
+        <result column="credits" property="credits"/>
+    </resultMap>
+
+    <!-- 分页查询成绩列表（包含学生和课程信息） -->
+    <select id="selectGradePageWithDetails" resultMap="GradeWithDetailsMap">
+        SELECT 
+            g.id,
+            g.student_id,
+            g.course_id,
+            g.usual_score,
+            g.midterm_score,
+            g.final_score,
+            g.total_score,
+            g.grade_level,
+            g.semester,
+            g.create_time,
+            g.update_time,
+            
+            <!-- 学生信息 -->
+            u.real_name as student_name,
+            u.username as student_number,
+            
+            <!-- 课程信息 -->
+            c.course_code,
+            c.course_name,
+            c.credits
+            
+        FROM grades g
+        INNER JOIN users u ON g.student_id = u.id
+        INNER JOIN courses c ON g.course_id = c.id
+        
+        <where>
+            g.deleted = 0
+            
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    u.real_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR u.username LIKE CONCAT('%', #{keyword}, '%')
+                    OR c.course_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR c.course_code LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            
+            <if test="courseId != null">
+                AND g.course_id = #{courseId}
+            </if>
+            
+            <if test="studentId != null">
+                AND g.student_id = #{studentId}
+            </if>
+            
+            <if test="semester != null and semester != ''">
+                AND g.semester = #{semester}
+            </if>
+            
+            <if test="gradeLevel != null and gradeLevel != ''">
+                AND g.grade_level = #{gradeLevel}
+            </if>
+        </where>
+        
+        ORDER BY g.semester DESC, g.total_score DESC
+    </select>
+
+    <!-- 批量插入成绩 -->
+    <insert id="batchInsert">
+        INSERT INTO grades (student_id, course_id, usual_score, midterm_score, final_score,
+                           total_score, grade_level, semester, create_time, update_time)
+        VALUES
+        <foreach collection="grades" item="grade" separator=",">
+            (#{grade.studentId}, #{grade.courseId}, #{grade.usualScore}, #{grade.midtermScore},
+             #{grade.finalScore}, #{grade.totalScore}, #{grade.gradeLevel}, #{grade.semester},
+             NOW(), NOW())
+        </foreach>
+    </insert>
+
+    <!-- 批量更新成绩 -->
+    <update id="batchUpdate">
+        <foreach collection="grades" item="grade" separator=";">
+            UPDATE grades SET
+                usual_score = #{grade.usualScore},
+                midterm_score = #{grade.midtermScore},
+                final_score = #{grade.finalScore},
+                total_score = #{grade.totalScore},
+                grade_level = #{grade.gradeLevel},
+                update_time = NOW()
+            WHERE id = #{grade.id}
+        </foreach>
+    </update>
+
+</mapper>

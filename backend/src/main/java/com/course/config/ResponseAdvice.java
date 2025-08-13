@@ -39,12 +39,32 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
                                 Class<? extends HttpMessageConverter<?>> selectedConverterType,
                                 ServerHttpRequest request, ServerHttpResponse response) {
-        
+        // 文件下载/字节流响应：直接透传，避免被统一包装
+        try {
+            if (body instanceof byte[]) {
+                // 明确设置为二进制流（若控制器未设置）
+                if (selectedContentType == null || !MediaType.APPLICATION_OCTET_STREAM.includes(selectedContentType)) {
+                    response.getHeaders().setContentType(MediaType.APPLICATION_OCTET_STREAM);
+                }
+                return body;
+            }
+            // ResponseEntity 会在外层处理，这里不做包装
+            if (org.springframework.http.ResponseEntity.class.isAssignableFrom(returnType.getParameterType())) {
+                return body;
+            }
+            // 明确的octet-stream也不包装
+            if (selectedContentType != null && MediaType.APPLICATION_OCTET_STREAM.includes(selectedContentType)) {
+                return body;
+            }
+        } catch (Exception ignore) {
+            // 忽略检查中的任何异常，继续走通用逻辑
+        }
+
         // 如果已经是Result类型，直接返回
         if (body instanceof Result) {
             return body;
         }
-        
+
         // 如果是String类型，需要特殊处理
         if (body instanceof String) {
             try {
@@ -55,7 +75,7 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
                 return Result.error("响应处理失败");
             }
         }
-        
+
         // 其他类型包装为Result
         return Result.success(body);
     }

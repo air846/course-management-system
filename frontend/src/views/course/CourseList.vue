@@ -76,14 +76,20 @@
             {{ formatDate(row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="360" fixed="right">
           <template #default="{ row }">
+            <el-button type="info" size="small" @click="handleViewStudents(row)">
+              选课学生
+            </el-button>
+            <el-button type="success" size="small" @click="handleGradeManagement(row)">
+              成绩管理
+            </el-button>
             <el-button type="primary" size="small" @click="handleEdit(row)">
               编辑
             </el-button>
-            <el-button 
-              :type="row.status === 1 ? 'warning' : 'success'" 
-              size="small" 
+            <el-button
+              :type="row.status === 1 ? 'warning' : 'success'"
+              size="small"
               @click="handleToggleStatus(row)"
             >
               {{ row.status === 1 ? '关闭' : '开放' }}
@@ -231,8 +237,11 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { courseApi } from '@/api/course'
+
+const router = useRouter()
 
 // 响应式数据
 const loading = ref(false)
@@ -345,6 +354,30 @@ const handleAdd = () => {
   isEdit.value = false
   resetCourseForm()
   dialogVisible.value = true
+}
+
+// 查看选课学生
+const handleViewStudents = (row) => {
+  console.log('handleViewStudents called with row:', row)
+  console.log('courseId:', row.id)
+
+  router.push({
+    name: 'CourseStudents',
+    params: { courseId: String(row.id) },
+    query: { courseName: row.courseName }
+  })
+}
+
+// 成绩管理
+const handleGradeManagement = (row) => {
+  console.log('handleGradeManagement called with row:', row)
+  console.log('courseId:', row.id)
+
+  router.push({
+    name: 'GradeManagement',
+    params: { courseId: String(row.id) },
+    query: { courseName: row.courseName }
+  })
 }
 
 // 编辑课程

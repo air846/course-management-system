@@ -81,6 +81,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/users/**").hasRole("ADMIN")
                 // 课程管理接口 - 需要管理员或教师权限
                 .antMatchers("/courses/**").hasAnyRole("ADMIN", "TEACHER")
+                // 选课管理接口 - 需要认证用户
+                .antMatchers("/course-selections/**").authenticated()
                 // 其他所有接口都需要认证
                 .anyRequest().authenticated();
 
