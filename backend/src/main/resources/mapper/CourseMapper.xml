@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.mapper.CourseMapper">
+
+    <!-- 课程结果映射 -->
+    <resultMap id="CourseWithTeacherMap" type="com.course.entity.Course">
+        <id column="id" property="id"/>
+        <result column="course_code" property="courseCode"/>
+        <result column="course_name" property="courseName"/>
+        <result column="category" property="category"/>
+        <result column="credits" property="credits"/>
+        <result column="hours" property="hours"/>
+        <result column="description" property="description"/>
+        <result column="teacher_id" property="teacherId"/>
+        <result column="max_students" property="maxStudents"/>
+        <result column="current_students" property="currentStudents"/>
+        <result column="semester" property="semester"/>
+        <result column="status" property="status"/>
+        <result column="deleted" property="deleted"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="teacher_name" property="teacherName"/>
+    </resultMap>
+
+    <!-- 分页查询课程列表（包含教师信息） -->
+    <select id="selectCoursePageWithTeacher" resultMap="CourseWithTeacherMap">
+        SELECT 
+            c.id, c.course_code, c.course_name, c.category, c.credits, c.hours,
+            c.description, c.teacher_id, c.max_students, c.current_students,
+            c.semester, c.status, c.deleted, c.create_time, c.update_time,
+            u.real_name as teacher_name
+        FROM courses c
+        LEFT JOIN users u ON c.teacher_id = u.id
+        <where>
+            c.deleted = 0
+            <if test="keyword != null and keyword != ''">
+                AND (c.course_code LIKE CONCAT('%', #{keyword}, '%') 
+                OR c.course_name LIKE CONCAT('%', #{keyword}, '%')
+                OR c.description LIKE CONCAT('%', #{keyword}, '%')
+                OR u.real_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="category != null and category != ''">
+                AND c.category = #{category}
+            </if>
+            <if test="teacherId != null">
+                AND c.teacher_id = #{teacherId}
+            </if>
+            <if test="semester != null and semester != ''">
+                AND c.semester = #{semester}
+            </if>
+            <if test="status != null">
+                AND c.status = #{status}
+            </if>
+        </where>
+        ORDER BY c.create_time DESC
+    </select>
+
+</mapper>
